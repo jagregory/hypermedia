@@ -1,0 +1,4 @@
+hypermedia
+==========
+
+Opinionated hypermedia helpers
