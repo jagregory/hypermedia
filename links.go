@@ -70,3 +70,15 @@ func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
 
 	return nil
 }
+
+// Find the href of a link by its relationship. Returns
+// "" if a link doesn't exist.
+func (l HyperlinkSet) Href(rel string) string {
+	for _, link := range l.links {
+		if link.Rel == rel {
+			return link.Href
+		}
+	}
+
+	return ""
+}
