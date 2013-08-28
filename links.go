@@ -54,3 +54,19 @@ func (l HyperlinkSet) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(out)
 }
+
+func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
+	var out map[string]map[string]string
+
+	if err := json.Unmarshal(d, &out); err != nil {
+		return err
+	}
+
+	l.links = make([]Hyperlink, 0, len(out))
+
+	for rel, link := range out {
+		l.links = append(l.links, Hyperlink{rel, link["href"]})
+	}
+
+	return nil
+}
