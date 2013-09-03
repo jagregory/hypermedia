@@ -19,11 +19,11 @@ func (r Resource) Modtime() *time.Time {
 // Wrapper for the resource content. Handles marshaling
 // the content to JSON.
 type Entity struct {
-	content interface{}
+	Content interface{}
 }
 
 func (e Entity) Modtime() *time.Time {
-	if c, ok := e.content.(Modtime); ok {
+	if c, ok := e.Content.(Modtime); ok {
 		return c.Modtime()
 	}
 
@@ -36,10 +36,18 @@ type Modtime interface {
 }
 
 func (m Entity) MarshalJSON() ([]byte, error) {
-	if marshaler, ok := m.content.(json.Marshaler); ok {
+	if marshaler, ok := m.Content.(json.Marshaler); ok {
 		return marshaler.MarshalJSON()
 	} else {
-		return json.Marshal(m.content)
+		return json.Marshal(m.Content)
+	}
+}
+
+func (m Entity) UnmarshalJSON(d []byte) error {
+	if marshaler, ok := m.Content.(json.Unmarshaler); ok {
+		return marshaler.UnmarshalJSON(d)
+	} else {
+		return json.Unmarshal(d, m.Content)
 	}
 }
 
