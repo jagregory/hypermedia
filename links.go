@@ -33,20 +33,25 @@ func Selff(format string, args ...interface{}) Hyperlink {
 
 // Create a set of hyperlinks
 func Links(links ...Hyperlink) HyperlinkSet {
-	return HyperlinkSet{links}
+	linkmap := make(map[string]Hyperlink, len(links))
+	for _, link := range links {
+		linkmap[link.Rel] = link
+	}
+
+	return HyperlinkSet{linkmap}
 }
 
 // Set of hyperlinks
 type HyperlinkSet struct {
-	links []Hyperlink
+	links map[string]Hyperlink
 }
 
 func (l HyperlinkSet) MarshalJSON() ([]byte, error) {
 	out := make(map[string]map[string]string)
 
 	if l.links != nil {
-		for _, link := range l.links {
-			out[link.Rel] = map[string]string{
+		for rel, link := range l.links {
+			out[rel] = map[string]string{
 				"href": link.Href,
 			}
 		}
@@ -62,10 +67,10 @@ func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	l.links = make([]Hyperlink, 0, len(out))
+	l.links = make(map[string]Hyperlink, len(out))
 
 	for rel, link := range out {
-		l.links = append(l.links, Hyperlink{rel, link["href"]})
+		l.links[rel] = Hyperlink{rel, link["href"]}
 	}
 
 	return nil
@@ -74,10 +79,10 @@ func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
 // Find the href of a link by its relationship. Returns
 // "" if a link doesn't exist.
 func (l HyperlinkSet) Href(rel string) string {
-	for _, link := range l.links {
-		if link.Rel == rel {
-			return link.Href
-		}
+	link, found := l.links[rel]
+
+	if found {
+		return link.Href
 	}
 
 	return ""
