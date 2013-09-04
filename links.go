@@ -3,6 +3,7 @@ package hypermedia
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jtacoma/uritemplates"
 )
 
 // A hyperlink with a href/URL and a relationship
@@ -60,6 +61,8 @@ func (l HyperlinkSet) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
+type Params map[string]interface{}
+
 func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
 	var out map[string]map[string]string
 
@@ -78,12 +81,23 @@ func (l *HyperlinkSet) UnmarshalJSON(d []byte) error {
 
 // Find the href of a link by its relationship. Returns
 // "" if a link doesn't exist.
-func (l HyperlinkSet) Href(rel string) string {
+func (l HyperlinkSet) Href(rel string) (string, error) {
+	return l.HrefParams(rel, nil)
+}
+
+// Find the href of a link by its relationship, expanding any URI Template
+// parameters with params. Returns "" if a link doesn't exist.
+func (l HyperlinkSet) HrefParams(rel string, params Params) (string, error) {
 	link, found := l.links[rel]
 
 	if found {
-		return link.Href
+		template, err := uritemplates.Parse(link.Href)
+		if err != nil {
+			return "", err
+		}
+
+		return template.Expand(params)
 	}
 
-	return ""
+	return "", nil
 }
